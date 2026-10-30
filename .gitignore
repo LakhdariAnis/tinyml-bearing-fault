@@ -1,0 +1,9 @@
+.claude/
+sprint/
+CLAUDE.md
+*.md
+!README.md
+data/
+.venv/
+__pycache__/
+*.pyc
