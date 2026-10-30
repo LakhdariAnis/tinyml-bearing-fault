@@ -6,8 +6,8 @@ from tensorflow import keras
 model = keras.models.load_model("models/baseline.keras")
 
 # Load the ORIGINAL split — X_test here is the same 20% held-out load-1
-# data that gave you 98%. We reuse it, unchanged, so the INT8 accuracy
-# number is directly comparable to your float32 number.
+# data used for the float32 result. Reusing it unchanged makes the INT8
+# accuracy directly comparable to the float32 accuracy.
 split_data = np.load("data/split.npz", allow_pickle=True)
 X_train_raw = split_data["X_train"]
 X_test_raw = split_data["X_test"]
@@ -15,7 +15,7 @@ y_test = split_data["y_test"]
 
 # Load the SAME normalization stats the float32 model was evaluated with.
 # Quantization calibration and test-time normalization must use these,
-# not stats recomputed from anything — consistent with your existing rule.
+# not stats recomputed from anything.
 stats = np.load("models/normalization_stats.npz")
 feature_mean = stats["feature_mean"]
 feature_std = stats["feature_std"]
@@ -42,7 +42,7 @@ def representative_dataset():
         yield [sample]
 
 
-# Set up the converter, starting from your saved Keras model.
+# Set up the converter, starting from the saved Keras model.
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
 
 # DEFAULT optimization enables quantization; combined with the settings
@@ -57,7 +57,7 @@ converter.representative_dataset = representative_dataset
 converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
 
 # Force the MODEL'S input and output tensors to be int8 too (not just
-# internal layers). This matters because your MCU code will feed raw
+# internal layers). This matters because the MCU code will feed raw
 # int8 bytes in and read int8 bytes out — no float32 conversion on-device.
 converter.inference_input_type = tf.int8
 converter.inference_output_type = tf.int8

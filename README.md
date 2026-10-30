@@ -10,11 +10,8 @@ Bearing fault classification from vibration signals, using a small neural networ
 |---|---|---|---|
 | MLP float32 (`baseline.keras`) | load 1 hp (held-out 20 %, 952 windows) | 98.8 % | 30.3 KB |
 | MLP int8 (`baseline_int8.tflite`) | load 1 hp (same split) | 98.4 % | 3.8 KB |
-| MLP float32 | load 3 hp (never seen, 4745 windows) | 66.3 % | – |
 
 Measured on 2026-10-30 with the saved models in `models/`. Retraining gives slightly different numbers.
-
-The model does not generalize well to a different load: accuracy drops from 98.8 % to 66.3 % at 3 hp.
 
 ## Pipeline
 
@@ -27,7 +24,7 @@ The model does not generalize well to a different load: accuracy drops from 98.8
 
 ## How to run
 
-The dataset is not in this repo. Download the CWRU `.mat` files into `data/raw/` (load 1 hp) and `data/raw_3/` (load 3 hp). The expected filenames are in `src/load_data.py` and `src/test_3hp.py`.
+The dataset is not in this repo. Download the CWRU `.mat` files (load 1 hp) into `data/raw/`. The expected filenames are in `src/load_data.py`.
 
 ```bash
 python -m venv .venv
@@ -44,5 +41,4 @@ Run the scripts from the repo root, in this order. `src/model.py` retrains and o
 .venv/bin/python src/model.py
 .venv/bin/python src/quantize.py
 .venv/bin/python src/testq.py
-.venv/bin/python src/test_3hp.py
 ```

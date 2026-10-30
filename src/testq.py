@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from sklearn.metrics import classification_report, confusion_matrix
 
-# Load the SAME test split used for the 98% float32 result — this keeps
+# Load the SAME test split used for the float32 result — this keeps
 # the comparison apples-to-apples: same 20% held-out load-1 windows.
 split_data = np.load("data/split.npz", allow_pickle=True)
 X_test_raw = split_data["X_test"]
@@ -16,8 +16,8 @@ feature_std = stats["feature_std"]
 X_test_norm = (X_test_raw - feature_mean) / feature_std
 
 # --- Load the TFLite model into an "interpreter" ---
-# Unlike Keras's model.predict(), TFLite doesn't give you a simple .predict().
-# You allocate memory buffers ("tensors") once, then feed data into the
+# Unlike Keras's model.predict(), TFLite has no simple .predict().
+# Memory buffers ("tensors") are allocated once, then data goes into the
 # input tensor and read the output tensor manually, one sample at a time.
 # This mirrors how it actually runs on the MCU later — no shortcuts.
 interpreter = tf.lite.Interpreter(model_path="models/baseline_int8.tflite")
@@ -28,14 +28,14 @@ output_details = interpreter.get_output_details()[0]
 
 # --- Understand the quantization parameters ---
 # Because we forced int8 input/output during conversion, the model no longer
-# accepts your normalized float values (like -0.42, 1.83, ...) directly.
+# accepts normalized float values (like -0.42, 1.83, ...) directly.
 # It was calibrated to expect int8 values in range [-128, 127], where each
 # int8 value maps back to a float value via:
 #     real_value = (int8_value - zero_point) * scale
 # So to go the OTHER way (float input -> int8 the model expects), we invert:
 #     int8_value = round(real_value / scale) + zero_point
 # `scale` and `zero_point` were decided by the converter during calibration
-# in quantize.py (based on the range of your X_train data) — we don't pick
+# in quantize.py (based on the range of the X_train data) — we don't pick
 # them, we just read them off the model.
 input_scale, input_zero_point = input_details["quantization"]
 output_scale, output_zero_point = output_details["quantization"]
